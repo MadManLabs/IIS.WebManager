@@ -14,21 +14,6 @@ import { Binding } from './site';
     selector: 'binding-item',
     template: `
         <div class="row grid-item" [class.background-editing]="edit">
-            <div class="actions">
-                <button title="Edit" [disabled]="!allowed('edit')" class='no-editing' (click)="onEdit()">
-                    <i class="fa fa-pencil color-active"></i>
-                </button>
-                <button title="Save" [disabled]="!isValid()" class="editing" (click)="onSave()">
-                    <i class="fa fa-check color-active"></i>
-                </button>
-                <button title="Cancel" class="editing" (click)="onCancel()">
-                    <i class="fa fa-times red"></i>
-                </button>
-                <button title="Delete" *ngIf="!model.isNew" [disabled]="!allowed('delete')" (click)="onDelete()">
-                    <i class="fa fa-trash-o red"></i>
-                </button>
-            </div>
-
             <div class='valign' *ngIf="!edit">
                 <div class="col-xs-8 col-md-1">
                     <label class="visible-xs visible-sm">Protocol</label>
@@ -56,62 +41,87 @@ import { Binding } from './site';
                     </div>
                 </div>
             </div>
+            <div class="bindingForm">
+                <div>
+                    <div class="valign" *ngIf="edit">
+                        <fieldset class="col-xs-8 col-md-4" *ngIf="isHttp()">
+                            <label>Host Name</label>
+                            <input class="form-control" type="text" [(ngModel)]="model.hostname"/>
+                        </fieldset>
+                        <fieldset class="col-xs-12 col-sm-10 col-md-4" *ngIf="isHttp()">
+                            <label>IP Address</label>
+                            <input class="form-control" type="text" [(ngModel)]="model.ip_address" required />
+                        </fieldset>
+                        <fieldset class="col-xs-12 col-sm-2" *ngIf="isHttp()">
+                            <label>Port</label>
+                            <input class="form-control" type="number" max="65535" min="1" [(ngModel)]="model.port" required />
+                        </fieldset>
 
-
-            <div class="valign" *ngIf="edit">
-                <fieldset class="col-xs-8 col-md-4" *ngIf="isHttp()">
-                    <label>Host Name</label>
-                    <input class="form-control" type="text" [(ngModel)]="model.hostname"/>
-                </fieldset>
-                <fieldset class="col-xs-12 col-sm-10 col-md-4" *ngIf="isHttp()">
-                    <label>IP Address</label>
-                    <input class="form-control" type="text" [(ngModel)]="model.ip_address" required />
-                </fieldset>
-                <fieldset class="col-xs-12 col-sm-2" *ngIf="isHttp()">
-                    <label>Port</label>
-                    <input class="form-control" type="number" max="65535" min="1" [(ngModel)]="model.port" required />
-                </fieldset>
-
-                <div class="col-xs-12 overflow-visible" *ngIf="isHttp()">   
-                    <fieldset class="inline-block">
-                        <label>HTTPS</label>
-                        <switch class="block" (modelChange)="model.is_https=$event" [model]="model.is_https" (modelChanged)=onHttps()>{{model.is_https ? "On" : "Off"}}</switch>
-                    </fieldset>
-                    <fieldset class="inline-block cert bottom" *ngIf="model.is_https">
-                        <button (click)="selectCert()" class="background-normal select-cert" [class.background-active]="!!_certSelect.first && _certSelect.first.opened">
-                            <span>{{!model.certificate ? 'Select Certificate' : name()}}</span><i class="fa fa-caret-down"></i>
-                        </button>
-                    </fieldset>
-                    <fieldset class="inline-block bottom" *ngIf="model.is_https && _supportsSni">
-                        <checkbox2 [(model)]="model.require_sni">Require SNI</checkbox2>
-                    </fieldset>
-                    <div class="selector" *ngIf="model.is_https">
-                        <selector #certSelect [hidden]="!certSelect || !certSelect.isOpen()" (hide)="onCertSelected()" class="container-fluid">
-                            <certificates-list #list (itemSelected)="onCertSelected($event)"></certificates-list>
-                        </selector>
-                    </div> 
-                    <fieldset class="certificate" *ngIf="model.is_https && model.certificate">
-                        <certificate-details [model]="model.certificate"></certificate-details>
-                    </fieldset>
+                        <div class="col-xs-12 overflow-visible" *ngIf="isHttp()">   
+                            <fieldset class="inline-block">
+                                <label>HTTPS</label>
+                                <switch class="block" (modelChange)="model.is_https=$event" [model]="model.is_https" (modelChanged)=onHttps()>{{model.is_https ? "On" : "Off"}}</switch>
+                            </fieldset>
+                            <fieldset class="inline-block cert bottom" *ngIf="model.is_https">
+                                <button (click)="selectCert()" class="background-normal select-cert" [class.background-active]="!!_certSelect.first && _certSelect.first.opened">
+                                    <span>{{!model.certificate ? 'Select Certificate' : name()}}</span><i class="fa fa-caret-down"></i>
+                                </button>
+                            </fieldset>
+                            <fieldset class="inline-block bottom" *ngIf="model.is_https && _supportsSni">
+                                <checkbox2 [(model)]="model.require_sni">Require SNI</checkbox2>
+                            </fieldset>
+                            <div class="selector" *ngIf="model.is_https">
+                                <selector #certSelect [hidden]="!certSelect || !certSelect.isOpen()" (hide)="onCertSelected()" class="container-fluid">
+                                    <certificates-list #list (itemSelected)="onCertSelected($event)"></certificates-list>
+                                </selector>
+                            </div> 
+                            <fieldset class="certificate" *ngIf="model.is_https && model.certificate">
+                                <certificate-details [model]="model.certificate"></certificate-details>
+                            </fieldset>
+                        </div>
+                        <div class="col-xs-8">
+                            <fieldset class="inline-block">
+                                <label>Custom Protocol</label>
+                                <switch class="block" [model]="!isHttp()" (modelChange)="onCustomProtocol($event)">{{isHttp() ? "Off" : "On"}}</switch>
+                            </fieldset>
+                            <fieldset class="inline-block protocol" *ngIf="!isHttp()">
+                                <label>Protocol</label>
+                                <input class="form-control" type="text" [(ngModel)]="model.protocol"/>
+                            </fieldset>
+                            <fieldset class="inline-block protocol" *ngIf="!isHttp()">
+                                <label>Binding Information</label>
+                                <input class="form-control" type="text" [(ngModel)]="model.binding_information"/>
+                            </fieldset>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-xs-8">
-                    <fieldset class="inline-block">
-                        <label>Custom Protocol</label>
-                        <switch class="block" [model]="!isHttp()" (modelChange)="onCustomProtocol($event)">{{isHttp() ? "Off" : "On"}}</switch>
-                    </fieldset>
-                    <fieldset class="inline-block protocol" *ngIf="!isHttp()">
-                        <label>Protocol</label>
-                        <input class="form-control" type="text" [(ngModel)]="model.protocol"/>
-                    </fieldset>
-                    <fieldset class="inline-block protocol" *ngIf="!isHttp()">
-                        <label>Binding Information</label>
-                        <input class="form-control" type="text" [(ngModel)]="model.binding_information"/>
-                    </fieldset>
+                <div>
+                    <div class="actions">
+                        <button title="Edit" [disabled]="!allowed('edit')" class='no-editing' (click)="onEdit()">
+                            <i class="fa fa-pencil color-active"></i>
+                        </button>
+                        <button title="Save" [disabled]="!isValid()" class="editing" (click)="onSave()">
+                            <i class="fa fa-check color-active"></i>
+                        </button>
+                        <button title="Cancel" class="editing" (click)="onCancel()">
+                            <i class="fa fa-times red"></i>
+                        </button>
+                        <button title="Delete" *ngIf="!model.isNew" [disabled]="!allowed('delete')" (click)="onDelete()">
+                            <i class="fa fa-trash-o red"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
+
+        
     `,
     styles: [`
+        .bindingForm {
+            /* switch displaying order to display Actions buttons on top */
+            display: flex; flex-direction: column-reverse;
+        }
+
         .grid-item > div {
             padding-left: 0px;
         }
