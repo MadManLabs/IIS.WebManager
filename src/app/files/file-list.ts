@@ -69,7 +69,7 @@ import { FileNavService } from './file-nav.service';
                     (drop)="drop($event, child)"
                     (dragenter)="onDragItemEnter(child, $event)"
                     (dragleave)="onDragItemLeave(child, $event)"
-                    (keyup.space)="onSpacebarClick(child, $event)">
+                    (keyup.space)="select(child)">
                     <file [model]="child" (modelChanged)="doSort()"></file>
                 </li>
             </virtual-list>
@@ -407,7 +407,7 @@ export class FileListComponent implements OnInit, OnDestroy {
         }
     }
 
-    private onSpacebarClick(f, _) {
+    private select(f) {
         this.clearSelection();
         this._selected.push(f);
     }
